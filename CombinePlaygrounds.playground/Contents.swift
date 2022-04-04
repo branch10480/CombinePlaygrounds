@@ -106,3 +106,69 @@ receiver2.subscription1.cancel()
 subject4.send("c")
 subject4.send(completion: .finished)
 
+print("--------------------------")
+
+// storeメソッドについて
+// 複数のsubscriptionをまとめて保持するときに便利
+
+let subject5 = PassthroughSubject<String, Never>()
+
+class Receiver3 {
+  // storeメソッドを使う場合はvarにする
+  var subscriptions = Set<AnyCancellable>()
+  
+  init() {
+    subject5
+      .sink { value in
+        print("value:", value)
+      }
+      .store(in: &subscriptions)
+    
+    subject5
+      .sink { value in
+        print("value:", value)
+      }
+      .store(in: &subscriptions)
+  }
+}
+
+let receiver3 = Receiver3()
+subject5.send("a")
+subject5.send("b")
+subject5.send("c")
+subject5.send(completion: .finished)
+
+print("--------------------------")
+
+// assingメソッド
+// subscriptionの一種
+// クロージャ処理の代わりにオブジェクトを指定している（バインド？）
+// assignは失敗しないsubjectでしか使えない
+
+let subject6 = PassthroughSubject<String, Never>()
+
+final class SomeObject {
+  // toに指定されるプロパティはミュータブルであること！
+  var value: String = "" {
+    didSet {
+      print("didSet value", value)
+    }
+  }
+}
+
+final class Receiver4 {
+  var subscriptions = Set<AnyCancellable>()
+  let object = SomeObject()
+  
+  init() {
+    subject6
+      .assign(to: \.value, on: object)
+      .store(in: &subscriptions)
+  }
+}
+
+let receiver4 = Receiver4()
+subject6.send("a")
+subject6.send("b")
+subject6.send("c")
+
