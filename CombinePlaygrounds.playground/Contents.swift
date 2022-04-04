@@ -77,3 +77,32 @@ subject3.send("b")
 receiver.subscription.cancel()
 subject3.send("c")
 subject3.send(completion: .finished)
+
+print("--------------------------")
+
+// 複数のsubscription
+
+let subject4 = PassthroughSubject<String, Never>()
+
+class Receiver2 {
+  let subscription1: AnyCancellable
+  let subscription2: AnyCancellable
+  
+  init() {
+    subscription1 = subject4.sink(receiveValue: { value in
+      print("Value:", value)
+    })
+    subscription2 = subject4.sink(receiveValue: { value in
+      print("Value:", value)
+    })
+  }
+}
+
+let receiver2 = Receiver2()
+subject4.send("a")
+subject4.send("b")
+// 片方だけキャンセル
+receiver2.subscription1.cancel()
+subject4.send("c")
+subject4.send(completion: .finished)
+
