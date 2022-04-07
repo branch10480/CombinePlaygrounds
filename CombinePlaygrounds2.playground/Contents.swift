@@ -105,6 +105,87 @@ NotificationCenter.default.post(.init(name: .my))
 
 print("-------------------------")
 
+// URLSession の Publisher
 
+let sessionPublisherExample = false
+let url = URL(string: "https://www.google.com/")!
+let sessionPublisher = URLSession.shared.dataTaskPublisher(for: url)
+
+final class Receiver5 {
+  var subscriptions = Set<AnyCancellable>()
+  
+  init() {
+    sessionPublisher
+      .sink(receiveCompletion: { completion in
+        // SessionのPublisherはエラーを返す場合がある
+        if case let .failure(error) = completion {
+          print("Received error:", error)
+        } else {
+          print("Received completion:", completion)
+        }
+      }, receiveValue: { data, response in
+        print("Received data:", data)
+        print("Received response:", response)
+      })
+      .store(in: &subscriptions)
+  }
+}
+
+if sessionPublisherExample {
+  let receiver5 = Receiver5()
+} else {
+  print("SessionPublisherExample was skipped.")
+}
+
+print("-------------------------")
+
+// CurrentValueSubject - RxSwift の BehaviorSubject と似たようなもの
+
+let currentValueSubject = CurrentValueSubject<String, Never>("A")
+
+final class Receiver6 {
+  var subscriptions = Set<AnyCancellable>()
+  
+  init() {
+    currentValueSubject
+      .sink(receiveValue: { value in
+        print("Received value:", value)
+      })
+      .store(in: &subscriptions)
+  }
+}
+
+let receiver6 = Receiver6()
+currentValueSubject.send("B")
+currentValueSubject.send("C")
+currentValueSubject.send("D")
+print("The value of currentValueSubject:", currentValueSubject.value)
+
+print("-------------------------")
+
+// PassthroughSubject - PublishSubjectに似ているがsubscribeした時点では値は流れない
+
+let ptSubject = PassthroughSubject<String, Never>()
+ptSubject.send("A")
+
+final class Receiver7 {
+  var subscriptins = Set<AnyCancellable>()
+  
+  init() {
+    ptSubject
+      .sink(receiveValue: { value in
+        print("Received value:", value)
+      })
+      .store(in: &subscriptins)
+  }
+}
+
+
+let receiver7 = Receiver7()
+ptSubject.send("B")
+ptSubject.send("C")
+ptSubject.send("D")
+
+print("-------------------------")
 
 
