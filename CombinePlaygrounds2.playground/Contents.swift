@@ -213,4 +213,41 @@ ptSubject2.send("B")
 ptSubject2.send("C")
 ptSubject2.send("D")
 
+print("-------------------------")
+
+// プロパティラッパー @Published
+
+final class Sender {
+  @Published private(set) var event: String = "A"
+  
+  func store(_ value: String) {
+    event = value
+  }
+}
+
+let sender = Sender()
+
+final class Receiver9 {
+  var subscriptions = Set<AnyCancellable>()
+  
+  init() {
+    // $をつけるとPublisherとして呼び出せる(@Publishedがついているプロパティのみ）
+    sender.$event
+      .sink(receiveValue: { value in
+        print("Received value", value)
+      })
+      .store(in: &subscriptions)
+  }
+}
+
+let receiver9 = Receiver9()
+// @Publishがついたプロパティにいつもの通り代入するだけで良い
+sender.store("A")
+sender.store("B")
+sender.store("C")
+sender.store("D")
+
+// この出力を見ると分かる通り、
+// @Published がついたプロパティは CurrentValueSubject として内部で扱われる
+
 
