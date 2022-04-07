@@ -188,4 +188,29 @@ ptSubject.send("D")
 
 print("-------------------------")
 
+// Subject は外部から send() 命令を送れてしまう
+// これは設計上良くない場合がある
+// 外部から Subject で有ることを隠す
+// Subject.eraseToAnyPublisher() を実行
+let ptSubject2 = PassthroughSubject<String, Never>()
+let anyPublisher = ptSubject2.eraseToAnyPublisher()
+
+final class Receiver8 {
+  var subscriptions = Set<AnyCancellable>()
+  
+  init() {
+    anyPublisher
+      .sink(receiveValue: { value in
+        print("Received value:", value)
+      })
+      .store(in: &subscriptions)
+  }
+}
+
+let receiver8 = Receiver8()
+ptSubject2.send("A")
+ptSubject2.send("B")
+ptSubject2.send("C")
+ptSubject2.send("D")
+
 
